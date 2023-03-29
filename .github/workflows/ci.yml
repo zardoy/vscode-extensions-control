@@ -22,7 +22,7 @@ jobs:
             ${{ runner.os }}-
       - uses: pnpm/action-setup@v2.0.1
         with:
-          version: latest
+          version: 8
           run_install: |
             args: [--frozen-lockfile, --strict-peer-dependencies]
       # - run: pnpm lint
