@@ -1,0 +1,53 @@
+{
+    "name": "extensions-control",
+    "displayName": "Extensions Control",
+    "description": "Control your extensions, don't let them control you.",
+    "publisher": "zardoy",
+    "version": "0.0.0-dev",
+    "license": "MIT",
+    "categories": [
+        "Other"
+    ],
+    "contributes": {},
+    "extensionDependencies": [
+        "lehni.vscode-fix-checksums"
+    ],
+    "scripts": {
+        "start": "vscode-framework start",
+        "build": "tsc && vscode-framework build"
+    },
+    "activationEvents": [
+        "*"
+    ],
+    "pnpm": {
+        "overrides": {
+            "esbuild": "^0.15.15"
+        }
+    },
+    "dependencies": {
+        "@types/node": "^18.15.10",
+        "@types/vscode": "1.73.0",
+        "@zardoy/vscode-utils": "^0.0.48",
+        "got": "^12.6.0",
+        "lodash": "^4.17.21",
+        "openai": "^3.2.1",
+        "source-map": "^0.7.4",
+        "typescript-json-schema": "0.51.0",
+        "vscode-framework": "^0.0.18"
+    },
+    "devDependencies": {
+        "@types/lodash": "^4.14.192",
+        "@zardoy/tsconfig": "^1.5.0",
+        "typescript": "^5.0.2"
+    },
+    "prettier": {
+        "semi": false,
+        "singleQuote": true,
+        "proseWrap": "never",
+        "tabWidth": 4,
+        "trailingComma": "all",
+        "arrowParens": "avoid",
+        "printWidth": 160,
+        "endOfLine": "auto"
+    }
+}
