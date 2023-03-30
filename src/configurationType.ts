@@ -52,7 +52,29 @@ export type Configuration = {
      * @default true
      */
     autoApplyPatch: boolean
+    /**
+     * @default {}
+     */
     disableProviders: {
         [provider in ProviderType]?: string[]
     }
+    /**
+     * @default {}
+     */
+    // overrideActivationEvents: {
+    //     [id: string]: string[]
+    // }
+    /**
+     * @default []
+     */
+    ignoreMessages: {
+        regex?: string
+        /** @default false */
+        regexCaseInsensitive?: boolean
+        /**
+         * Full extension id to filter
+         */
+        extension?: string
+        severity?: 0 | 1 | 2 | 3
+    }[]
 }

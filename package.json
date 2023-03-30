@@ -3,12 +3,29 @@
     "displayName": "Extensions Control",
     "description": "Control your extensions, don't let them control you.",
     "publisher": "zardoy",
+    "preview": true,
     "version": "0.0.0-dev",
+    "main": "main.js",
     "license": "MIT",
     "categories": [
         "Other"
     ],
-    "contributes": {},
+    "contributes": {
+        "commands": [
+            {
+                "command": "forcePatch",
+                "title": "Force apply patch again"
+            },
+            {
+                "command": "removeAllPatches",
+                "title": "Remove All Patches (clean)"
+            },
+            {
+                "command": "logExtensionsActivationOrder",
+                "title": "Log (print) Extensions Activation Order"
+            }
+        ]
+    },
     "extensionDependencies": [
         "lehni.vscode-fix-checksums"
     ],
@@ -17,7 +34,7 @@
         "build": "tsc && vscode-framework build"
     },
     "activationEvents": [
-        "*"
+        "onStartupFinished"
     ],
     "pnpm": {
         "overrides": {

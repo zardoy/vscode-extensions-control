@@ -1,17 +1,47 @@
 import * as vscode from 'vscode'
-import { getExtensionSetting } from 'vscode-framework'
+import { extensionCtx, getExtensionSetting, registerExtensionCommand } from 'vscode-framework'
 import { watchExtensionSettings } from '@zardoy/vscode-utils/build/settings'
-import { doPatch } from './patch'
+import { doPatch, removeAllPatches } from './patch'
 
 export const activate = async () => {
-    const upConfig = () => {
-        process.env.VSC_CONTROL_EXT_CONFIG = JSON.stringify({ disableProviders: getExtensionSetting('disableProviders') })
+    const getNewConfig = () => {
+        return {
+            disableProviders: getExtensionSetting('disableProviders'),
+            ignoreMessages: getExtensionSetting('ignoreMessages'),
+            version: extensionCtx.extension.packageJSON.version,
+        }
+    }
+    const updateConfig = async (restartExtHost = false) => {
+        const config = getNewConfig()
+        process.env.VSC_CONTROL_EXT_CONFIG = JSON.stringify(config)
+        await patchNow(config, restartExtHost)
     }
 
-    watchExtensionSettings(['disableProviders'], upConfig)
+    watchExtensionSettings(['disableProviders', 'ignoreMessages'], async () => {
+        await updateConfig()
+    })
 
-    if (process.env.VSC_CONTROL_EXT_CONFIG) {
-        upConfig()
+    // #region commands
+    registerExtensionCommand('forcePatch', () => updateConfig())
+    registerExtensionCommand('removeAllPatches', () => {
+        removeAllPatches()
+    })
+    registerExtensionCommand('logExtensionsActivationOrder', () => {
+        console.log(JSON.parse(process.env.VSC_EXT_ACT_ORDER ?? 'null'))
+    })
+    // #endregion
+
+    // Main activation actions
+
+    // todo continue impl
+    // for (const [id, expected] of Object.entries(getExtensionSetting('overrideActivationEvents'))) {
+    // }
+
+    const extVersion = extensionCtx.extension.packageJSON.version
+    const currentLoadedConfig = process.env.VSC_CONTROL_EXT_CONFIG && JSON.parse(process.env.VSC_CONTROL_EXT_CONFIG)
+    const patchedVersion = currentLoadedConfig?.version
+    if (patchedVersion && patchedVersion === extVersion) {
+        if (process.env.VSC_CONTROL_EXT_CONFIG !== JSON.stringify(getNewConfig())) await updateConfig()
     } else {
         if (
             !getExtensionSetting('autoApplyPatch') &&
@@ -19,16 +49,20 @@ export const activate = async () => {
         ) {
             return
         }
+        if (patchedVersion && patchedVersion !== extVersion) {
+            // force save unpatched version after update
+            removeAllPatches()
+        }
         vscode.window.showInformationMessage('Patching & restarting extension host...')
         setTimeout(async () => {
-            try {
-                await doPatch()
-                await vscode.commands.executeCommand('fixChecksums.apply')
-                await vscode.commands.executeCommand('workbench.action.restartExtensionHost')
-            } catch (err) {
-                vscode.window.showErrorMessage(`Failed to apply patch: ${err.message ?? err}`)
-                throw err
-            }
+            await updateConfig(true)
         }, 0)
     }
+}
+
+async function patchNow(config, restart: boolean) {
+    await doPatch(config)
+    await vscode.commands.executeCommand('fixChecksums.apply')
+    if (!restart) return
+    await vscode.commands.executeCommand('workbench.action.restartExtensionHost')
 }

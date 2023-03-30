@@ -1,0 +1,12 @@
+{
+    "name": "testing-extension",
+    "version": "0.0.0",
+    "publisher": "unknown",
+    "engines": {
+        "vscode": "^1.70.0"
+    },
+    "activationEvents": [
+        "*"
+    ],
+    "main": "index.js"
+}
