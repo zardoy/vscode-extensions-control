@@ -25,6 +25,8 @@ experiment-*
 .eslintcache
 Thumbs.db
 .idea/
+*.vsix
+.vscode/*
 
 src/generated.ts
 src/configurationTypeCache.jsonc

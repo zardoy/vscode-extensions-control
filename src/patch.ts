@@ -159,16 +159,6 @@ const doPatchInner = async (config: any) => {
     fs.writeFileSync(fileToPatch, text, 'utf8')
 
     function injectScriptContents(offset: number, inject: string) {
-        // <injected before>|<inject end marker>
-        // if (text.slice(offset).startsWith(injectMarkers[1])) {
-        //     const endMarkerPos = offset
-        //     offset = text.slice(0, offset).lastIndexOf(injectMarkers[0])
-        //     text = text.slice(0, offset) + text.slice(endMarkerPos + injectMarkers[1].length)
-        // }
-        // // |<injected after>
-        // if (text.slice(offset).startsWith(injectMarkers[0])) {
-        //     text = text.slice(0, offset) + text.slice(text.slice(offset).indexOf(injectMarkers[1] + injectMarkers[1].length))
-        // }
         if (!inject) return
         text =
             text.slice(0, offset) +
