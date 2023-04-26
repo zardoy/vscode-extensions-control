@@ -78,7 +78,7 @@ export const activate = async () => {
 
     // Main activation actions
 
-    let reloadExtHostExtensions = false
+    let patchedManifestExtensions = [] as string[]
     for (const [id, expected] of Object.entries(getExtensionSetting('overrideActivationEvents'))) {
         const ext = vscode.extensions.getExtension(id)
         if (!ext) continue
@@ -96,19 +96,25 @@ export const activate = async () => {
                     4,
                 ),
             )
-            reloadExtHostExtensions = true
+            patchedManifestExtensions.push(id)
         }
     }
-    if (reloadExtHostExtensions) {
-        vscode.window.showInformationMessage('Restarting extension host as activation events were patched...')
-        await vscode.commands.executeCommand('workbench.action.restartExtensionHost')
-        return
+    if (patchedManifestExtensions.length) {
+        const action = await vscode.window.showInformationMessage(
+            `Manifest of these extension were patched: ${patchedManifestExtensions}`,
+            'Reload window to apply',
+        )
+        if (action) {
+            await vscode.commands.executeCommand('workbench.action.reloadWindow')
+            return
+        }
     }
 
     const extVersion = extensionCtx.extension.packageJSON.version
     const currentLoadedConfig = process.env.VSC_CONTROL_EXT_CONFIG && JSON.parse(process.env.VSC_CONTROL_EXT_CONFIG)
     const patchedVersion = currentLoadedConfig?.version
-    if (patchedVersion && patchedVersion === extVersion) {
+    if (patchedVersion && (patchedVersion === extVersion || process.env.NODE_ENV === 'development')) {
+        // dev: force patch here when needed
         if (process.env.VSC_CONTROL_EXT_CONFIG !== JSON.stringify(getNewConfig())) await updateConfig()
     } else {
         if (
