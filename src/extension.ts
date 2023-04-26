@@ -1,7 +1,11 @@
+import * as fs from 'fs'
+
 import * as vscode from 'vscode'
-import { extensionCtx, getExtensionSetting, registerExtensionCommand } from 'vscode-framework'
+import { extensionCtx, getExtensionSetting, getExtensionSettingId, registerExtensionCommand } from 'vscode-framework'
 import { watchExtensionSettings } from '@zardoy/vscode-utils/build/settings'
 import { doPatch, removeAllPatches } from './patch'
+import { parseTree, findNodeAtOffset, getNodePath, getLocation } from 'jsonc-parser'
+import { join } from 'path'
 
 export const activate = async () => {
     const getNewConfig = () => {
@@ -31,11 +35,75 @@ export const activate = async () => {
     })
     // #endregion
 
+    vscode.languages.registerCompletionItemProvider(
+        {
+            pattern: '**/settings.json',
+        },
+        {
+            provideCompletionItems(document, position, token, context) {
+                const root = parseTree(document.getText(), [])
+                if (!root) {
+                    return
+                }
+                const node = findNodeAtOffset(root, document.offsetAt(position))
+                if (node?.type !== 'string') {
+                    return
+                }
+
+                let path = getNodePath(node)
+                const pathMatches = (compare: string[], useStartsWith = false) => {
+                    if (!useStartsWith && compare.length !== path.length) {
+                        return undefined
+                    }
+                    return compare.every((item, i) => item === '*' || item === path[i])
+                }
+                if (
+                    (pathMatches([getExtensionSettingId('overrideActivationEvents'), '*']) && node.parent?.type === 'property') ||
+                    pathMatches([getExtensionSettingId('disableProviders'), '*', '*'])
+                ) {
+                    const start = document.positionAt(node.offset + 1)
+                    const end = document.positionAt(node.offset + 1 + node.length - 2)
+                    const range = new vscode.Range(start, end)
+                    return vscode.extensions.all.map(ext => ({
+                        label: ext.id,
+                        detail: ext.packageJSON.displayName,
+                        filterText: `${ext.id}${ext.packageJSON.displayName}`,
+                        range,
+                    }))
+                }
+                return []
+            },
+        },
+    )
+
     // Main activation actions
 
-    // todo continue impl
-    // for (const [id, expected] of Object.entries(getExtensionSetting('overrideActivationEvents'))) {
-    // }
+    let reloadExtHostExtensions = false
+    for (const [id, expected] of Object.entries(getExtensionSetting('overrideActivationEvents'))) {
+        const ext = vscode.extensions.getExtension(id)
+        if (!ext) continue
+        const { activationEvents = [] } = ext.packageJSON
+        if (JSON.stringify(expected.sort()) !== JSON.stringify(activationEvents.sort())) {
+            const packageJson = join(ext.extensionPath, 'package.json')
+            fs.writeFileSync(
+                packageJson,
+                JSON.stringify(
+                    {
+                        ...ext.packageJSON,
+                        activationEvents: expected,
+                    },
+                    undefined,
+                    4,
+                ),
+            )
+            reloadExtHostExtensions = true
+        }
+    }
+    if (reloadExtHostExtensions) {
+        vscode.window.showInformationMessage('Restarting extension host as activation events were patched...')
+        await vscode.commands.executeCommand('workbench.action.restartExtensionHost')
+        return
+    }
 
     const extVersion = extensionCtx.extension.packageJSON.version
     const currentLoadedConfig = process.env.VSC_CONTROL_EXT_CONFIG && JSON.parse(process.env.VSC_CONTROL_EXT_CONFIG)

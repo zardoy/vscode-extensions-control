@@ -61,9 +61,9 @@ export type Configuration = {
     /**
      * @default {}
      */
-    // overrideActivationEvents: {
-    //     [id: string]: string[]
-    // }
+    overrideActivationEvents: {
+        [id: string]: string[]
+    }
     /**
      * @default []
      */

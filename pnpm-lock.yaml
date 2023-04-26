@@ -12,10 +12,13 @@ dependencies:
     version: 1.73.0
   '@zardoy/vscode-utils':
     specifier: ^0.0.48
-    version: 0.0.48(@types/vscode@1.73.0)(vscode-framework@0.0.18)
+    version: 0.0.48(@types/vscode@1.73.0)(jsonc-parser@3.2.0)(vscode-framework@0.0.18)
   got:
     specifier: ^12.6.0
     version: 12.6.0
+  jsonc-parser:
+    specifier: ^3.2.0
+    version: 3.2.0
   lodash:
     specifier: ^4.17.21
     version: 4.17.21
@@ -293,7 +296,7 @@ packages:
       type-fest: 2.19.0
     dev: false
 
-  /@zardoy/vscode-utils@0.0.48(@types/vscode@1.73.0)(vscode-framework@0.0.18):
+  /@zardoy/vscode-utils@0.0.48(@types/vscode@1.73.0)(jsonc-parser@3.2.0)(vscode-framework@0.0.18):
     resolution: {integrity: sha512-jtW1QhkiZVp534vm3wufFB87S4wj2MOV3JqjLL56qhSqlHbuDZhZ4SsQrs6m9OSNqj3fz7qMpQmWyG0+gw6MDQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     hasBin: true
@@ -319,6 +322,7 @@ packages:
       commander: 9.5.0
       execa: 5.1.1
       fs-extra: 10.1.0
+      jsonc-parser: 3.2.0
       lodash.throttle: 4.1.1
       modify-json-file: 1.2.2
       path-browserify: 1.0.1
